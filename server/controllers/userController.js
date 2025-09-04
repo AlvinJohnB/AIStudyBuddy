@@ -1,53 +1,61 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
+import Auth from "../middlewares/authMiddleware.js";
 
-export const registerUser = async (req, res, next) => {
-  try {
-    const { username, email, school, password } = req.body;
+export default class UserController {
+  // ### Register a new user
+  static async registerUser(req, res, next) {
+    try {
+      const { username, email, school, password } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
+      // Check if user already exists
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists." });
+      }
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create new user
+      const newUser = new User({
+        username,
+        email,
+        school,
+        password: hashedPassword,
+      });
+
+      await newUser.save();
+      res.status(201).json({ message: "User registered successfully." });
+    } catch (error) {
+      next(error);
     }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser = new User({
-      username,
-      email,
-      school,
-      password: hashedPassword,
-    });
-
-    await newUser.save();
-    res.status(201).json({ message: "User registered successfully." });
-  } catch (error) {
-    next(error);
   }
-};
 
-export const loginUser = async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
+  // ### Login a user
+  static async loginUser(req, res, next) {
+    try {
+      const { username, password } = req.body;
 
-    // Find user by username
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      // Find user by username
+      const user = await User.findOne({ username });
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      // Check password
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials." });
+      }
+
+      const token = Auth.createAccessToken(user);
+
+      res.status(200).json({ message: "Login successful.", access: token });
+    } catch (error) {
+      next(error);
     }
-
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials." });
-    }
-
-    res.status(200).json({ message: "Login successful." });
-  } catch (error) {
-    next(error);
   }
-};
+}

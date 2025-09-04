@@ -2,10 +2,12 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import multer from "multer";
 
 import errorHandler from "./middlewares/errorHandler.js";
 
 import userRoutes from "./routes/userRoutes.js";
+import noteRoutes from "./routes/noteRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -26,6 +28,7 @@ mongoose
 
 //   Routes
 app.use("/users", userRoutes);
+app.use("/notes", noteRoutes);
 
 app.use(errorHandler);
 
