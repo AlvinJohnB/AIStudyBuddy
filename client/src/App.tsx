@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Quiz from "./pages/quiz/Quiz";
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/quiz/:id" element={<Quiz />} />
       </Routes>
       <Toaster position="top-right" richColors />
     </Router>

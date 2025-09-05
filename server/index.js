@@ -1,15 +1,17 @@
+import dotenv from "dotenv";
+// Load environment variables first before other imports
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import multer from "multer";
 
 import errorHandler from "./middlewares/errorHandler.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
-
-dotenv.config();
+import quizRoutes from "./routes/quizRoutes.js";
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -29,6 +31,7 @@ mongoose
 //   Routes
 app.use("/users", userRoutes);
 app.use("/notes", noteRoutes);
+app.use("/quizzes", quizRoutes);
 
 app.use(errorHandler);
 

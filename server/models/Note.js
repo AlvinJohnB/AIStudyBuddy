@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const noteSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
   extractedText: {
     type: String,
     required: true,
@@ -9,6 +13,12 @@ const noteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+  },
+  pdfPath: {
+    type: String,
+  },
+  originalFilename: {
+    type: String,
   },
   createdAt: {
     type: Date,

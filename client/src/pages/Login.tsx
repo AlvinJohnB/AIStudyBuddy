@@ -41,6 +41,7 @@ export default function LoginPage() {
       if (response.status === 200) {
         toast.success("Login successful!");
         setFormData({ username: "", password: "" });
+        localStorage.setItem("token", response.data.access);
         navigate("/");
       }
     } catch (error) {
