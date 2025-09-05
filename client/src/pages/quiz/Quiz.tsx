@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,46 +14,6 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
-
-// Mock quiz data - in real app this would come from database
-// const mockQuiz = {
-//   id: "1",
-//   title: "Biology Quiz #1",
-//   source: "Biology Chapter 12.pdf",
-//   type: "Multiple Choice",
-//   difficulty: "Medium",
-//   questions: [
-//     {
-//       id: 1,
-//       question: "What is the powerhouse of the cell?",
-//       options: ["Nucleus", "Mitochondria", "Ribosome", "Endoplasmic Reticulum"],
-//       correct: 1,
-//       explanation:
-//         "Mitochondria are known as the powerhouse of the cell because they produce ATP, the energy currency of the cell.",
-//     },
-//     {
-//       id: 2,
-//       question: "Which process converts glucose into ATP?",
-//       options: [
-//         "Photosynthesis",
-//         "Cellular Respiration",
-//         "Transcription",
-//         "Translation",
-//       ],
-//       correct: 1,
-//       explanation:
-//         "Cellular respiration is the process that breaks down glucose to produce ATP energy.",
-//     },
-//     {
-//       id: 3,
-//       question: "What is the basic unit of life?",
-//       options: ["Atom", "Molecule", "Cell", "Tissue"],
-//       correct: 2,
-//       explanation:
-//         "The cell is considered the basic unit of life as it is the smallest unit that can carry out all life processes.",
-//     },
-//   ],
-// };
 
 export default function Quiz() {
   const { id } = useParams();
@@ -68,7 +28,7 @@ export default function Quiz() {
     user: string;
     note: { title: string; _id: string };
     questions: Array<{
-      _id?: string; // Make _id optional since it might not exist in all questions
+      _id?: string;
       question: string;
       options: Array<{
         text: string;
@@ -143,7 +103,7 @@ export default function Quiz() {
     setQuizCompleted(false);
   };
 
-  if (showResults) {
+  if (showResults && quizCompleted) {
     const score = calculateScore();
     const correctAnswers = quizData
       ? selectedAnswers.filter(
@@ -282,9 +242,9 @@ export default function Quiz() {
               <Brain className="h-5 w-5 text-blue-600" />
               <div className="text-right">
                 <p className="font-semibold">{quizData.title}</p>
-                <p className="text-sm text-muted-foreground">
+                {/* <p className="text-sm text-muted-foreground">
                   {quizData.note.title}
-                </p>
+                </p> */}
               </div>
             </div>
           </div>
@@ -337,7 +297,8 @@ export default function Quiz() {
                     <span className="font-medium">
                       {String.fromCharCode(65 + index)}.
                     </span>
-                    <span>{option.text}</span>
+                    {/* Slice - 2 to remove first 3 chars */}
+                    <span>{option.text.slice(2)}</span>
                   </div>
                 </button>
               ))}
