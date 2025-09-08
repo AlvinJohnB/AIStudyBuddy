@@ -12,6 +12,8 @@ import errorHandler from "./middlewares/errorHandler.js";
 import userRoutes from "./routes/userRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import flashcardRoutes from "./routes/flashcardRoutes.js";
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
@@ -32,6 +34,7 @@ mongoose
 app.use("/users", userRoutes);
 app.use("/notes", noteRoutes);
 app.use("/quizzes", quizRoutes);
+app.use("/flashcards", flashcardRoutes);
 
 app.use(errorHandler);
 
