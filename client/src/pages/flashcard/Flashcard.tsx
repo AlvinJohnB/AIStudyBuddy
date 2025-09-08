@@ -185,7 +185,7 @@ export default function Flashcard() {
                     </p>
                   )}
                 </CardContent>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <div className="absolute bottom-0 md:bottom-4 left-1/2 transform -translate-x-1/2">
                   <Button variant="ghost" size="sm">
                     <EyeOff className="h-4 w-4 mr-2" />
                     Click to hide answer
@@ -196,7 +196,7 @@ export default function Flashcard() {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between items-center">
+          <div className="md:flex justify-between flex-wrap items-center hidden md:visible">
             <Button
               variant="outline"
               onClick={handlePrevious}
@@ -215,6 +215,40 @@ export default function Flashcard() {
                 <Button variant="outline">
                   <Home className="h-4 w-4 mr-2" />
                   Dashboard
+                </Button>
+              </Link>
+            </div>
+
+            <Button
+              onClick={handleNext}
+              disabled={
+                !flashcardData?.questions ||
+                currentCard === flashcardData.questions.length - 1
+              }
+            >
+              Next
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+
+          {/* Nav Small Screens */}
+          <div className="flex justify-between flex-wrap items-center md:hidden">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentCard === 0}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Prev
+            </Button>
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={resetCards}>
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Link to="/">
+                <Button variant="outline">
+                  <Home className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
