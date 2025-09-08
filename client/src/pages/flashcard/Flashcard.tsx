@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+
+import axios from "axios";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,41 +13,55 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-// Mock flashcard data
-const mockFlashcards = {
-  id: "2",
-  title: "Math Practice",
-  source: "Math Formulas.pdf",
-  type: "Flashcards",
-  difficulty: "Hard",
-  cards: [
-    {
-      id: 1,
-      front: "What is the quadratic formula?",
-      back: "x = (-b ± √(b² - 4ac)) / 2a",
-    },
-    {
-      id: 2,
-      front: "What is the derivative of sin(x)?",
-      back: "cos(x)",
-    },
-    {
-      id: 3,
-      front: "What is the integral of 1/x?",
-      back: "ln|x| + C",
-    },
-  ],
-};
+interface FlashcardCard {
+  _id: string;
+  note: object;
+  title: string;
+  user: string;
+  questions: Array<{
+    _id: string;
+    question: string;
+    answer: string;
+    explanation: string;
+  }>;
+}
 
-export default function FlashcardsPage() {
+export default function Flashcard() {
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [studiedCards, setStudiedCards] = useState<Set<number>>(new Set());
+  const [flashcardData, setFlashcardData] = useState<FlashcardCard | null>(
+    null
+  );
+
+  const { id } = useParams<{ id: string }>();
+
+  useEffect(() => {
+    const fetchFlashcards = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/flashcards/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        if (response.status === 200) {
+          setFlashcardData(response.data);
+        }
+        console.log("Fetched flashcards:", response.data);
+      } catch (error) {
+        console.error("Error fetching flashcards:", error);
+      }
+    };
+    fetchFlashcards();
+  }, []);
 
   const handleNext = () => {
-    if (currentCard < mockFlashcards.cards.length - 1) {
+    if (flashcardData && currentCard < flashcardData.questions.length - 1) {
       setCurrentCard(currentCard + 1);
       setIsFlipped(false);
     }
@@ -72,8 +87,9 @@ export default function FlashcardsPage() {
     setStudiedCards(new Set());
   };
 
-  const progress = (studiedCards.size / mockFlashcards.cards.length) * 100;
-  const currentCardData = mockFlashcards.cards[currentCard];
+  const progress =
+    (studiedCards.size / (flashcardData?.questions?.length ?? 1)) * 100;
+  const currentCardData = flashcardData?.questions[currentCard];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-gray-900 dark:to-gray-800">
@@ -91,10 +107,7 @@ export default function FlashcardsPage() {
             <div className="flex items-center gap-3">
               <Brain className="h-5 w-5 text-purple-600" />
               <div className="text-right">
-                <p className="font-semibold">{mockFlashcards.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {mockFlashcards.source}
-                </p>
+                <p className="font-semibold">{flashcardData?.title}</p>
               </div>
             </div>
           </div>
@@ -107,10 +120,10 @@ export default function FlashcardsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">
-                Card {currentCard + 1} of {mockFlashcards.cards.length}
+                Card {currentCard + 1} of {flashcardData?.questions.length}
               </span>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{mockFlashcards.difficulty}</Badge>
+                {/* <Badge variant="secondary">{flashcardData?.difficulty}</Badge> */}
                 <span className="text-sm text-muted-foreground">
                   {studiedCards.size} studied
                 </span>
@@ -140,7 +153,7 @@ export default function FlashcardsPage() {
                 </CardHeader>
                 <CardContent className="flex items-center justify-center h-48">
                   <p className="text-xl text-center text-balance font-medium">
-                    {currentCardData.front}
+                    {currentCardData?.question || "Loading..."}
                   </p>
                 </CardContent>
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
@@ -162,10 +175,15 @@ export default function FlashcardsPage() {
                     Answer
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex items-center justify-center h-48">
+                <CardContent className="grid items-center justify-center h-48">
                   <p className="text-xl text-center text-balance font-medium">
-                    {currentCardData.back}
+                    {currentCardData?.answer || "Loading..."}
                   </p>
+                  {currentCardData?.explanation && (
+                    <p className="mt-4 text-sm text-center text-muted-foreground">
+                      {currentCardData.explanation}
+                    </p>
+                  )}
                 </CardContent>
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
                   <Button variant="ghost" size="sm">
@@ -203,7 +221,10 @@ export default function FlashcardsPage() {
 
             <Button
               onClick={handleNext}
-              disabled={currentCard === mockFlashcards.cards.length - 1}
+              disabled={
+                !flashcardData?.questions ||
+                currentCard === flashcardData.questions.length - 1
+              }
             >
               Next
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -220,7 +241,7 @@ export default function FlashcardsPage() {
                 </span>
               </div>
               <div className="flex gap-1 mt-2">
-                {mockFlashcards.cards.map((_, index) => (
+                {flashcardData?.questions.map((_, index) => (
                   <div
                     key={index}
                     className={`h-2 flex-1 rounded ${

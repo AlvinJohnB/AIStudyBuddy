@@ -99,10 +99,7 @@ export default class FlashCardController {
   static async getFlashcardById(req, res, next) {
     try {
       const { flashcardId } = req.params;
-      const flashcard = await Flashcard.findById(flashcardId).populate(
-        "note",
-        "title"
-      );
+      const flashcard = await Flashcard.findById(flashcardId).populate("note");
       if (!flashcard)
         return res.status(404).json({ error: "Flashcard not found" });
       res.status(200).json(flashcard);
