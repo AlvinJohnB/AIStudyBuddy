@@ -1,19 +1,20 @@
 FROM node:18-alpine
-
-# Create app directory
 WORKDIR /app
 
-# Install app dependencies
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ git bash
+
+# Copy package.json first for caching
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Bundle app source, excluding node_modules and other unnecessary files
-COPY --chown=node:node . .
+# Copy app source code
+COPY . .
 
-# Use a non-root user
-USER node
-
-# Expose the port your app runs on
+# Expose port
 EXPOSE 5000
 
+# Run the app
 CMD ["node", "index.js"]
