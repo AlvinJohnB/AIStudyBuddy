@@ -14,15 +14,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Upload, BookOpen, Brain, FileText, Plus, Target } from "lucide-react";
+import { Upload, BookOpen, Brain, FileText, LogOut, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import LoadingContext from "@/contexts/LoadingContext";
+import { useUser } from "@/contexts/UserContext";
 
 export default function Dashboard() {
   const { setIsLoading } = useContext(LoadingContext);
+  const { logout } = useUser();
 
   interface Note {
     _id: string;
@@ -175,9 +177,9 @@ export default function Dashboard() {
                 <Button size="sm">Sign Up</Button>
               </Link>
             </div> */}
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Upload PDF
+            <Button variant="outline" size="sm" onClick={() => logout()}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>

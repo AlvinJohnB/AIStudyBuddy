@@ -1,20 +1,16 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, User, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useUser } from "../contexts/UserContext";
 import axios from "axios";
 import { toast } from "sonner";
 
 export default function LoginPage() {
+  const { fetchUserDetails } = useUser();
   const navigate = useNavigate();
   interface LoginFormData {
     username: string;
@@ -34,21 +30,17 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/login`,
-        formData
-      );
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/login`, formData);
       if (response.status === 200) {
         toast.success("Login successful!");
         setFormData({ username: "", password: "" });
         localStorage.setItem("token", response.data.access);
+        await fetchUserDetails(response.data.access);
         navigate("/");
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data.message || "Login failed. Please try again."
-        );
+        toast.error(error.response.data.message || "Login failed. Please try again.");
       } else {
         console.error("Login failed:", error);
       }
@@ -63,20 +55,14 @@ export default function LoginPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white mx-auto mb-4">
             <Brain className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            AI Study Buddy
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Welcome back to your learning journey
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Study Buddy</h1>
+          <p className="text-gray-600 dark:text-gray-400">Welcome back to your learning journey</p>
         </div>
         <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Sign In</CardTitle>
-              <CardDescription>
-                Enter your credentials to access your study materials
-              </CardDescription>
+              <CardDescription>Enter your credentials to access your study materials</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -118,10 +104,7 @@ export default function LoginPage() {
                   Remember me
                 </span>
               </label> */}
-                <Link
-                  to="/forgot-password"
-                  className="text-blue-600 hover:text-blue-500"
-                >
+                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-500">
                   Forgot password?
                 </Link>
               </div>
@@ -132,10 +115,7 @@ export default function LoginPage() {
 
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
-                >
+                <Link to="/register" className="text-blue-600 hover:text-blue-500 font-medium">
                   Sign up
                 </Link>
               </div>

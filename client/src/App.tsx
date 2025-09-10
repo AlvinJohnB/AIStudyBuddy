@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Loading from "./components/loading";
 import { LoadingProvider } from "./contexts/LoadingContext";
 import { UserProvider } from "./contexts/UserContext";
+import ProtectedRoute from "./contexts/ProtectedRoute";
 
 function App() {
   return (
@@ -18,7 +19,14 @@ function App() {
           <Loading />
 
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/quiz/:id" element={<Quiz />} />
