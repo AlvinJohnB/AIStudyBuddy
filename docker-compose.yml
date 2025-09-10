@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  server:
+    build: ./server
+    container_name: myproject-server
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/mydb?authSource=admin
+    depends_on:
+      - mongo
+
+  client:
+    build: ./client
+    container_name: myproject-client
+    restart: always
+    ports:
+      - "3000:80"   # React app served by nginx in Dockerfile
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - server
+
+  mongo:
+    image: mongo:6
+    container_name: myproject-mongo
+    restart: always
+    ports:
+      - "27017:27017"   # optional, only if you want outside access
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
