@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, Mail, Lock, User, School } from "lucide-react";
@@ -18,6 +12,8 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   interface RegisterFormData {
+    firstName: string;
+    lastName: string;
     username: string;
     email: string;
     password: string;
@@ -26,6 +22,8 @@ export default function RegisterPage() {
   }
 
   const [formData, setFormData] = useState<RegisterFormData>({
+    firstName: "",
+    lastName: "",
     username: "",
     email: "",
     password: "",
@@ -41,12 +39,11 @@ export default function RegisterPage() {
   const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/register`,
-        formData
-      );
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/register`, formData);
       if (response.status === 201) {
         setFormData({
+          firstName: "",
+          lastName: "",
           username: "",
           email: "",
           password: "",
@@ -58,10 +55,8 @@ export default function RegisterPage() {
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          error.response.data.message ||
-            "An error occurred during registration."
-        );
+        toast.error(error.response.data.message || "An error occurred during registration.");
+        console.error("Registration error:", error.response);
       } else {
         console.error("Registration failed:", error);
       }
@@ -76,24 +71,50 @@ export default function RegisterPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white mx-auto mb-4">
             <Brain className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            AI Study Buddy
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Start your smart learning journey today
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Study Buddy</h1>
+          <p className="text-gray-600 dark:text-gray-400">Start your smart learning journey today</p>
         </div>
         <form onSubmit={submitForm}>
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-xl">Create Account</CardTitle>
-              <CardDescription>
-                Join thousands of students enhancing their learning with AI
-              </CardDescription>
+              <CardDescription>Join thousands of students enhancing their learning with AI</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Username</Label>
+                <Label htmlFor="firstName">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="Enter your first name"
+                    className="pl-10"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Enter your last name"
+                    className="pl-10"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
@@ -175,17 +196,11 @@ export default function RegisterPage() {
                 <input type="checkbox" className="rounded mt-1" required />
                 <span className="text-gray-600 dark:text-gray-400">
                   I agree to the{" "}
-                  <Link
-                    to="/terms"
-                    className="text-blue-600 hover:text-blue-500"
-                  >
+                  <Link to="/terms" className="text-blue-600 hover:text-blue-500">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link
-                    to="/privacy"
-                    className="text-blue-600 hover:text-blue-500"
-                  >
+                  <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
                     Privacy Policy
                   </Link>
                 </span>
@@ -197,10 +212,7 @@ export default function RegisterPage() {
 
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
-                >
+                <Link to="/login" className="text-blue-600 hover:text-blue-500 font-medium">
                   Sign in
                 </Link>
               </div>
@@ -209,8 +221,7 @@ export default function RegisterPage() {
         </form>
 
         <div className="text-center mt-6 text-xs text-gray-500">
-          By creating an account, you're joining a community of learners using
-          AI to study smarter
+          By creating an account, you're joining a community of learners using AI to study smarter
         </div>
       </div>
     </div>

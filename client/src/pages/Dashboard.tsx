@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Upload, BookOpen, Brain, FileText, LogOut, Target } from "lucide-react";
+import { Upload, BookOpen, Brain, FileText, LogOut, Target, BrainCog } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
@@ -24,13 +24,15 @@ import { useUser } from "@/contexts/UserContext";
 
 export default function Dashboard() {
   const { setIsLoading } = useContext(LoadingContext);
-  const { logout } = useUser();
+  const { logout, user } = useUser();
 
   interface Note {
     _id: string;
     title: string;
     extractedText: string;
     user: string;
+    quizGenerated: boolean;
+    flashcardGenerated: boolean;
     createdAt: string;
   }
 
@@ -59,48 +61,95 @@ export default function Dashboard() {
   const [file, setFile] = useState<File | null>(null);
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
 
+  const fetchNotes = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/notes`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setNotes(response.data);
+      console.log("Fetched notes:", response.data);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+    }
+  };
+
+  const fetchQuizzes = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/quizzes`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setQuizzes(response.data);
+      console.log("Fetched quizzes:", response.data);
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+    }
+  };
+
+  const fetchFlashcards = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/flashcards`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setFlashcards(response.data);
+      console.log("Fetched flashcards:", response.data);
+    } catch (error) {
+      console.error("Error fetching flashcards:", error);
+    }
+  };
+
+  const handleGenerateQuiz = async (noteId: string) => {
+    try {
+      setIsLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/quizzes/${noteId}/generate`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      toast.success("Quiz generated successfully.");
+      // setQuizzes((prev) => [...prev, response.data]);
+      fetchQuizzes();
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      toast.error("Error generating quiz. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateFlashcards = async (noteId: string) => {
+    try {
+      setIsLoading(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/flashcards/${noteId}/generate`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Flashcards generated successfully.");
+      fetchFlashcards();
+    } catch (error) {
+      console.error("Error generating flashcards:", error);
+      toast.error("Error generating flashcards. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/notes`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setNotes(response.data);
-        console.log("Fetched notes:", response.data);
-      } catch (error) {
-        console.error("Error fetching notes:", error);
-      }
-    };
-
-    const fetchQuizzes = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/quizzes`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setQuizzes(response.data);
-        console.log("Fetched quizzes:", response.data);
-      } catch (error) {
-        console.error("Error fetching quizzes:", error);
-      }
-    };
-
-    const fetchFlashcards = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/flashcards`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setFlashcards(response.data);
-        console.log("Fetched flashcards:", response.data);
-      } catch (error) {
-        console.error("Error fetching flashcards:", error);
-      }
-    };
     fetchNotes();
     fetchQuizzes();
     fetchFlashcards();
@@ -144,8 +193,9 @@ export default function Dashboard() {
       toast.success("File uploaded successfully.");
       setTitle("");
       setFile(null);
-    } catch {
-      toast.error("Error uploading file.");
+      fetchNotes();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Error uploading file. Please try again.");
     } finally {
       setIsLoading(false);
       setOpenUploadDialog(false);
@@ -189,7 +239,7 @@ export default function Dashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 text-balance">
-            Welcome back to your study space
+            Hi, {user?.firstName || "Guest"}! Welcome to your study space.
           </h2>
           <p className="text-gray-600 dark:text-gray-400 text-lg">
             Upload your notes and let AI create personalized quizzes to boost your learning.
@@ -230,7 +280,7 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900">
-                  <Brain className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <BrainCog className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{flashcards.length || 0}</p>
@@ -325,13 +375,26 @@ export default function Dashboard() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    <Button variant="outline" size="sm">
-                      <Brain className="h-4 w-4 mr-2" />
-                      Generate Quiz
+                    <Button
+                      variant={note.quizGenerated ? "outline" : "default"}
+                      className="hover:cursor-pointer transition-colors"
+                      disabled={note.quizGenerated}
+                      size="sm"
+                      onClick={() => handleGenerateQuiz(note._id)}
+                      aria-label={note.quizGenerated ? "Quiz already generated" : "Generate quiz"}
+                    >
+                      <Target className="h-4 w-4 mr-2" />
+                      {note.quizGenerated ? "Quiz Generated" : "Generate Quiz"}
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Brain className="h-4 w-4 mr-2" />
-                      Generate Flashcards
+                    <Button
+                      variant={note.flashcardGenerated ? "outline" : "default"}
+                      disabled={note.flashcardGenerated}
+                      className="hover:cursor-pointer transition-colors"
+                      size="sm"
+                      onClick={() => handleGenerateFlashcards(note._id)}
+                    >
+                      <BrainCog className="h-4 w-4 mr-2" />
+                      {note.flashcardGenerated ? "Flashcards Generated" : "Generate Flashcards"}
                     </Button>
                   </div>
                 </div>
@@ -344,7 +407,7 @@ export default function Dashboard() {
         <Card className="mt-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
+              <Target className="h-5 w-5" />
               Your Generated Quizzes
             </CardTitle>
             <CardDescription>AI-generated quizzes from your study materials.</CardDescription>
@@ -377,7 +440,7 @@ export default function Dashboard() {
         <Card className="mt-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
+              <BrainCog className="h-5 w-5" />
               Your Generated Flashcards
             </CardTitle>
             <CardDescription>AI-generated flashcards from your study materials.</CardDescription>

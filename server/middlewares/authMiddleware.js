@@ -19,9 +19,7 @@ export default class Auth {
     const token = req.headers.authorization?.slice("Bearer ".length).trim();
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ message: "Access Denied. No token provided." });
+      return res.status(401).json({ message: "Access Denied. No token provided." });
     }
 
     try {

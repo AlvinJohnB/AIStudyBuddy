@@ -1,5 +1,6 @@
 import client from "../config/visionClient.js";
 import Note from "../models/Note.js";
+import User from "../models/User.js";
 import { promises as fs } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,6 +15,20 @@ export default class NoteController {
     try {
       const { title } = req.body;
       const userId = req.user.id;
+
+      // console.log(userId);
+
+      const user = await User.findOne({ _id: userId });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+      // Check limits
+      if (user.uploadsUsed >= user.uploadsLimit) {
+        return res
+          .status(403)
+          .json({ message: "Upload limit reached for this week. Contact developer for assistance." });
+      }
 
       // Create a temporary file for the uploaded PDF
       const timestamp = Date.now();
@@ -47,6 +62,9 @@ export default class NoteController {
 
         pageCounter++;
       }
+
+      user.uploadsUsed += 1;
+      await user.save();
 
       // Save to DB
       const newNote = new Note({

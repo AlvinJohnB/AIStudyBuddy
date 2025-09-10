@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import Quiz from "../models/Quiz.js";
 import Note from "../models/Note.js";
+import User from "../models/User.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -19,6 +20,19 @@ export default class QuizController {
     try {
       const { id } = req.user;
       const { noteId } = req.params;
+
+      const user = await User.findById(id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      if (user.quizzesGenerated >= user.quizzesLimit) {
+        return res
+          .status(403)
+          .json({ message: "Quiz generation limit reached for this week. Contact developer for assistance." });
+      }
+
       const note = await Note.findById(noteId);
 
       const existingQuiz = await Quiz.findOne({ note: noteId });
@@ -63,12 +77,17 @@ export default class QuizController {
       });
 
       const quiz = JSON.parse(response.choices[0].message.content);
-      console.log(quiz);
+      // console.log(quiz);
 
       //   console.log(response);
 
-      const quizText = response.choices[0].message.content;
-      console.log("Generated Quiz Text:", quizText);
+      // const quizText = response.choices[0].message.content;
+      // console.log("Generated Quiz Text:", quizText);
+      user.quizzesGenerated += 1;
+      await user.save();
+
+      note.quizGenerated = true;
+      await note.save();
 
       // Format the questions to match the schema
       const formattedQuestions = quiz.questions.map((q) => ({

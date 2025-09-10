@@ -14,11 +14,13 @@ const noteSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  pdfPath: {
-    type: String,
+  quizGenerated: {
+    type: Boolean,
+    default: false,
   },
-  originalFilename: {
-    type: String,
+  flashcardGenerated: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

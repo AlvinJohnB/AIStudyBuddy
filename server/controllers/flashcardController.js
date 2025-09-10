@@ -1,16 +1,16 @@
 import Flashcard from "../models/Flashcard.js";
 import Note from "../models/Note.js";
+import User from "../models/User.js";
 import OpenAI from "openai";
 
 import dotenv from "dotenv";
+
 dotenv.config();
 
 // Check if API key exists, otherwise log a helpful error
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
-  console.error(
-    "OPENAI_API_KEY is not defined in environment variables. Check your .env file."
-  );
+  console.error("OPENAI_API_KEY is not defined in environment variables. Check your .env file.");
   process.exit(1);
 }
 
@@ -21,14 +21,24 @@ export default class FlashCardController {
     try {
       const { id } = req.user;
       const { noteId } = req.params;
+
+      const user = await User.findById(id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      if (user.flashcardsGenerated >= user.flashcardsLimit) {
+        return res
+          .status(403)
+          .json({ message: "Flashcard generation limit reached for this week. Contact developer for assistance." });
+      }
+
       const note = await Note.findById(noteId);
 
       const existingFlashCard = await Flashcard.findOne({ note: noteId });
 
-      if (existingFlashCard)
-        return res
-          .status(400)
-          .json({ error: "Flashcard already exists for this note" });
+      if (existingFlashCard) return res.status(400).json({ error: "Flashcard already exists for this note" });
 
       if (!note) return res.status(404).json({ error: "Note not found" });
 
@@ -37,8 +47,7 @@ export default class FlashCardController {
         messages: [
           {
             role: "system",
-            content:
-              "You are a flashcard generator. Always respond in strict JSON.",
+            content: "You are a flashcard generator. Always respond in strict JSON.",
           },
           {
             role: "user",
@@ -67,12 +76,18 @@ export default class FlashCardController {
       });
 
       const flashcard = JSON.parse(response.choices[0].message.content);
-      console.log(flashcard);
+      // console.log(flashcard);
 
       //   console.log(response);
 
-      const flashcardText = response.choices[0].message.content;
-      console.log("Generated Flashcard Text:", flashcardText);
+      // const flashcardText = response.choices[0].message.content;
+      // console.log("Generated Flashcard Text:", flashcardText);
+
+      user.flashcardsGenerated += 1;
+      await user.save();
+
+      note.flashcardGenerated = true;
+      await note.save();
 
       // Format the questions to match the schema
       const formattedQuestions = flashcard.questions.map((q) => ({
@@ -100,8 +115,7 @@ export default class FlashCardController {
     try {
       const { flashcardId } = req.params;
       const flashcard = await Flashcard.findById(flashcardId).populate("note");
-      if (!flashcard)
-        return res.status(404).json({ error: "Flashcard not found" });
+      if (!flashcard) return res.status(404).json({ error: "Flashcard not found" });
       res.status(200).json(flashcard);
     } catch (error) {
       next(error);

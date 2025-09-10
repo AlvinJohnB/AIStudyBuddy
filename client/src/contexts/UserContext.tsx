@@ -3,8 +3,10 @@ import axios from "axios";
 
 type User = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  username: string;
 };
 
 type UserContextType = {
@@ -14,6 +16,7 @@ type UserContextType = {
   logout: () => void;
   fetchUserDetails: (token: string) => Promise<void>;
   isAuthenticated: boolean;
+  hasToken: boolean; // Add this to track if token exists
 };
 
 const UserContext = createContext<UserContextType>({
@@ -23,15 +26,18 @@ const UserContext = createContext<UserContextType>({
   logout: () => {},
   isAuthenticated: false,
   fetchUserDetails: () => Promise.resolve(),
+  hasToken: false, // Add default value
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasToken, setHasToken] = useState<boolean>(false); // Add state to track token
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     setUser(null);
+    setHasToken(false); // Update token state
   }, []);
 
   // Fetch user details from the server when the component mounts
@@ -51,11 +57,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setUser(null);
         localStorage.removeItem("token");
+        setHasToken(false); // Update token state
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
       setUser(null);
       localStorage.removeItem("token");
+      setHasToken(false); // Update token state
     } finally {
       setIsLoading(false);
     }
@@ -65,9 +73,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setUser(null);
+      setHasToken(false); // No token exists
       setIsLoading(false);
       return;
     }
+
+    setHasToken(true); // Token exists
     fetchUserDetails(token);
   }, []);
 
@@ -78,6 +89,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     logout,
     fetchUserDetails,
     isAuthenticated: !!user,
+    hasToken, // Expose the token status
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
