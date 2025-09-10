@@ -375,10 +375,10 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="flex gap-1 md:justify-center flex-wrap mt-3 md:mt-0">
                     <Button
                       variant={note.quizGenerated ? "outline" : "default"}
-                      className="hover:cursor-pointer transition-colors"
+                      className="hover:cursor-pointer transition-colors w-full md:w-50"
                       disabled={note.quizGenerated}
                       size="sm"
                       onClick={() => handleGenerateQuiz(note._id)}
@@ -390,7 +390,7 @@ export default function Dashboard() {
                     <Button
                       variant={note.flashcardGenerated ? "outline" : "default"}
                       disabled={note.flashcardGenerated}
-                      className="hover:cursor-pointer transition-colors"
+                      className="hover:cursor-pointer transition-colors w-full md:w-50"
                       size="sm"
                       onClick={() => handleGenerateFlashcards(note._id)}
                     >
