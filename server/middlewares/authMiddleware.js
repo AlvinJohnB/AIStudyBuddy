@@ -10,9 +10,7 @@ export default class Auth {
       isAdmin: user.isAdmin,
     };
 
-    return jwt.sign(data, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1d",
-    });
+    return jwt.sign(data, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
   }
 
   // Verify JWT

@@ -46,6 +46,10 @@ export default class UserController {
         return res.status(404).json({ message: "User not found." });
       }
 
+      if (user.isActive === false) {
+        return res.status(403).json({ message: "Your account is not yet activated. Please contact support." });
+      }
+
       // Check password
       const isMatch = await bcrypt.compare(password, user.password);
 
