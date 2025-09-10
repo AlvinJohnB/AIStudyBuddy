@@ -6,16 +6,8 @@ const router = express.Router();
 
 router.get("/", Auth.verifyToken, FlashCardController.getFlashcards);
 
-router.get(
-  "/:flashcardId",
-  Auth.verifyToken,
-  FlashCardController.getFlashcardById
-);
+router.get("/:flashcardId", Auth.verifyToken, FlashCardController.getFlashcardById);
 
-router.post(
-  "/:noteId/generate",
-  Auth.verifyToken,
-  FlashCardController.generateFlashCards
-);
+router.post("/:noteId/generate", Auth.verifyToken, Auth.checkAndResetLimits, FlashCardController.generateFlashCards);
 
 export default router;

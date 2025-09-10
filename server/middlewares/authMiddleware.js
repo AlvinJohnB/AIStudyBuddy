@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 export default class Auth {
   // Create JWT
@@ -37,6 +38,28 @@ export default class Auth {
       next();
     } else {
       res.status(403).json({ message: "Access Denied. Admins only." });
+    }
+  }
+
+  // Check ResetDate and reset limits if needed
+  static async checkAndResetLimits(req, res, next) {
+    try {
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+      const now = new Date();
+      if (now >= user.resetDate) {
+        user.uploadsUsed = 0;
+        user.quizzesGenerated = 0;
+        user.flashcardsGenerated = 0;
+        user.resetDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+        await user.save();
+      }
+      next();
+    } catch (error) {
+      next(error);
     }
   }
 }

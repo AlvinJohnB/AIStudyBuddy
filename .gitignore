@@ -4,8 +4,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-#config
-server/config/
 
 # Test Data
 server/test/

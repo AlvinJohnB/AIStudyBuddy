@@ -15,6 +15,6 @@ export const upload = multer({
 
 router.get("/", Auth.verifyToken, NoteController.getNotes);
 
-router.post("/", Auth.verifyToken, upload.single("file"), NoteController.saveNote);
+router.post("/", Auth.verifyToken, Auth.checkAndResetLimits, upload.single("file"), NoteController.saveNote);
 
 export default router;

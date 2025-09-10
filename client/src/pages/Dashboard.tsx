@@ -196,6 +196,7 @@ export default function Dashboard() {
       fetchNotes();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Error uploading file. Please try again.");
+      console.log(error);
     } finally {
       setIsLoading(false);
       setOpenUploadDialog(false);

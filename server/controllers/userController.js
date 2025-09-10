@@ -6,7 +6,7 @@ export default class UserController {
   // ### Register a new user
   static async registerUser(req, res, next) {
     try {
-      const { username, email, school, password } = req.body;
+      const { firstName, lastName, username, email, school, password } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ username });
@@ -21,6 +21,8 @@ export default class UserController {
       // Create new user
       const newUser = new User({
         username,
+        firstName,
+        lastName,
         email,
         school,
         password: hashedPassword,

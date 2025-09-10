@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.get("/", Auth.verifyToken, QuizController.getQuizzes);
 router.get("/:quizId", Auth.verifyToken, QuizController.getQuizById);
-router.post("/:noteId/generate", Auth.verifyToken, QuizController.generateQuiz);
+router.post("/:noteId/generate", Auth.verifyToken, Auth.checkAndResetLimits, QuizController.generateQuiz);
 
 export default router;
