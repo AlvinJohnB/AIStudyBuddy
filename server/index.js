@@ -18,7 +18,20 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+  "http://ajbregs.com:3000",
+  "https://ajbregs.com",
+  "https://api-aistudybuddy.ajbregs.com",
+  "https://aistudybuddy.ajbregs.com",
+  "http://localhost:3000",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // if you use cookies or authentication headers
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
