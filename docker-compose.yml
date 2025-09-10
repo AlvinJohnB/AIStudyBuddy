@@ -3,30 +3,43 @@ version: "3.8"
 services:
   server:
     build: ./server
-    container_name: myproject-server
+    container_name: aistudybuddy-server
     restart: always
     ports:
       - "5000:5000"
     environment:
-      - NODE_ENV=production
-      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/mydb?authSource=admin
+      - NODE_ENV=${NODE_ENV}
+      - MONGODB_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/mydb?authSource=admin
+      - PORT=${PORT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
+      - GOOGLE_PRIVATE_KEY_ID=${GOOGLE_PRIVATE_KEY_ID}
+      - GOOGLE_PRIVATE_KEY=${GOOGLE_PRIVATE_KEY}
+      - GOOGLE_CLIENT_EMAIL=${GOOGLE_CLIENT_EMAIL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_AUTH_URI=${GOOGLE_AUTH_URI}
+      - GOOGLE_TOKEN_URI=${GOOGLE_TOKEN_URI}
+      - GOOGLE_AUTH_PROVIDER_X509_CERT_URL=${GOOGLE_AUTH_PROVIDER_X509_CERT_URL}
+      - GOOGLE_CLIENT_X509_CERT_URL=${GOOGLE_CLIENT_X509_CERT_URL}
     depends_on:
       - mongo
 
   client:
     build: ./client
-    container_name: myproject-client
+    container_name: aistudybuddy-client
     restart: always
     ports:
       - "3000:80"   # React app served by nginx in Dockerfile
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV}
+      - VITE_API_URL=${VITE_API_URL}
     depends_on:
       - server
 
   mongo:
     image: mongo:6
-    container_name: myproject-mongo
+    container_name: aistudybuddy-mongo
     restart: always
     ports:
       - "27017:27017"   # optional, only if you want outside access
