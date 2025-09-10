@@ -26,14 +26,16 @@ services:
       - mongo
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     container_name: aistudybuddy-client
     restart: always
     ports:
-      - "3000:80"   # React app served by nginx in Dockerfile
+      - "3000:80"
     environment:
       - NODE_ENV=${NODE_ENV}
-      - VITE_API_URL=${VITE_API_URL}
     depends_on:
       - server
 
