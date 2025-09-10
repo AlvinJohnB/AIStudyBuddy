@@ -7,18 +7,98 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Upload,
-  BookOpen,
-  Brain,
-  FileText,
-  Plus,
-  Clock,
-  Target,
-} from "lucide-react";
+import { Upload, BookOpen, Brain, FileText, Plus, Target } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function Dashboard() {
+  interface Note {
+    _id: string;
+    title: string;
+    extractedText: string;
+    user: string;
+    createdAt: string;
+  }
+
+  interface Quiz {
+    _id: string;
+    title: string;
+    user: string;
+    note: string;
+    questions: any[];
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Flashcard {
+    _id: string;
+    title: string;
+    questions: any[];
+    user: string;
+    note: string;
+  }
+
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/notes`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setNotes(response.data);
+        console.log("Fetched notes:", response.data);
+      } catch (error) {
+        console.error("Error fetching notes:", error);
+      }
+    };
+
+    const fetchQuizzes = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/quizzes`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setQuizzes(response.data);
+        console.log("Fetched quizzes:", response.data);
+      } catch (error) {
+        console.error("Error fetching quizzes:", error);
+      }
+    };
+
+    const fetchFlashcards = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/flashcards`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setFlashcards(response.data);
+        console.log("Fetched flashcards:", response.data);
+      } catch (error) {
+        console.error("Error fetching flashcards:", error);
+      }
+    };
+    fetchNotes();
+    fetchQuizzes();
+    fetchFlashcards();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -78,7 +158,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    12
+                    {notes.length || 0}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Documents uploaded
@@ -96,7 +176,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    8
+                    {quizzes.length || 0}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Quizzes generated
@@ -109,15 +189,15 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900">
-                  <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900">
+                  <Brain className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    24h
+                    {flashcards.length || 0}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Study time this week
+                    Flashcards generated
                   </p>
                 </div>
               </div>
@@ -157,43 +237,42 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                Recent Documents
+                Notes
               </CardTitle>
               <CardDescription>
                 Your recently uploaded study materials.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                {
-                  name: "Biology Chapter 12.pdf",
-                  date: "2 hours ago",
-                  pages: 24,
-                },
-                { name: "Math Formulas.pdf", date: "1 day ago", pages: 8 },
-                { name: "History Notes.pdf", date: "3 days ago", pages: 16 },
-              ].map((doc, index) => (
+            <CardContent className="space-y-4 overflow-y-auto">
+              {notes.map((note, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 dark:bg-gray-800"
+                  className="grid grid-cols-1 p-3 rounded-lg border bg-gray-50 dark:bg-gray-800"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center mb-1 gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded bg-red-100 dark:bg-red-900">
                       <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">
-                        {doc.name}
+                        {note.title}
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {doc.pages} pages • {doc.date}
-                      </p>
+                      {/* <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {note.pages} pages • {note.date}
+                      </p> */}
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Brain className="h-4 w-4 mr-2" />
-                    Generate Quiz
-                  </Button>
+
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Button variant="outline" size="sm">
+                      <Brain className="h-4 w-4 mr-2" />
+                      Generate Quiz
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Brain className="h-4 w-4 mr-2" />
+                      Generate Flashcards
+                    </Button>
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -213,66 +292,68 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                {
-                  id: "1",
-                  title: "Biology Quiz #1",
-                  source: "Biology Chapter 12.pdf",
-                  questions: 15,
-                  type: "Multiple Choice",
-                  difficulty: "Medium",
-                },
-                {
-                  id: "2",
-                  title: "Math Practice",
-                  source: "Math Formulas.pdf",
-                  questions: 10,
-                  type: "Flashcards",
-                  difficulty: "Hard",
-                },
-                {
-                  id: "3",
-                  title: "History Review",
-                  source: "History Notes.pdf",
-                  questions: 20,
-                  type: "Multiple Choice",
-                  difficulty: "Easy",
-                },
-              ].map((quiz, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
+              {quizzes.map((quiz) => (
+                <Card
+                  key={quiz._id}
+                  className="hover:shadow-md transition-shadow"
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 dark:text-white">
                         {quiz.title}
                       </h3>
-                      <Badge
-                        variant={
-                          quiz.difficulty === "Easy"
-                            ? "secondary"
-                            : quiz.difficulty === "Medium"
-                            ? "default"
-                            : "destructive"
-                        }
-                      >
-                        {quiz.difficulty}
-                      </Badge>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      From: {quiz.source}
+                      From: {quiz.title}
                     </p>
                     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      <span>{quiz.questions} questions</span>
-                      <span>{quiz.type}</span>
+                      <span>{quiz.questions.length} questions</span>
                     </div>
-                    <Link
-                      to={
-                        quiz.type === "Flashcards"
-                          ? `/flashcards/${quiz.id}`
-                          : `/quiz/${quiz.id}`
-                      }
-                    >
+                    <Link to={`/quiz/${quiz._id}`}>
                       <Button className="w-full" size="sm">
-                        Start {quiz.type === "Flashcards" ? "Study" : "Quiz"}
+                        Start Quiz
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Generated Flashcards Section */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              Your Generated Flashcards
+            </CardTitle>
+            <CardDescription>
+              AI-generated flashcards from your study materials.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {flashcards.map((flashcard) => (
+                <Card
+                  key={flashcard._id}
+                  className="hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        {flashcard.title}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      From: {flashcard.title}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      <span>{flashcard.questions.length} questions</span>
+                    </div>
+                    <Link to={`/flashcard/${flashcard._id}`}>
+                      <Button className="w-full" size="sm">
+                        Start Studying
                       </Button>
                     </Link>
                   </CardContent>

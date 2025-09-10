@@ -13,6 +13,8 @@ export const upload = multer({
   },
 });
 
+router.get("/", Auth.verifyToken, NoteController.getNotes);
+
 router.post(
   "/notes",
   Auth.verifyToken,

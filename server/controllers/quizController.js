@@ -109,4 +109,17 @@ export default class QuizController {
       next(error);
     }
   }
+
+  static async getQuizzes(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const quizzes = await Quiz.find({ user: userId }).sort({ createdAt: -1 });
+      if (!quizzes || quizzes.length === 0) {
+        return res.status(404).json({ message: "No quizzes found." });
+      }
+      res.status(200).json(quizzes);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

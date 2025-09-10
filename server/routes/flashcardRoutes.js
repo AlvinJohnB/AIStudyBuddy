@@ -4,6 +4,8 @@ import FlashCardController from "../controllers/flashcardController.js";
 
 const router = express.Router();
 
+router.get("/", Auth.verifyToken, FlashCardController.getFlashcards);
+
 router.get(
   "/:flashcardId",
   Auth.verifyToken,

@@ -107,4 +107,19 @@ export default class FlashCardController {
       next(error);
     }
   }
+
+  static async getFlashcards(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const flashcards = await Flashcard.find({ user: userId }).sort({
+        createdAt: -1,
+      });
+      if (!flashcards || flashcards.length === 0) {
+        return res.status(404).json({ message: "No flashcards found." });
+      }
+      res.status(200).json(flashcards);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

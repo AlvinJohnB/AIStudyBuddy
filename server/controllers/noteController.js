@@ -82,4 +82,19 @@ export default class NoteController {
       next(error);
     }
   }
+
+  static async getNotes(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const notes = await Note.find({ user: userId }).sort({ createdAt: -1 });
+
+      if (!notes || notes.length === 0) {
+        return res.status(404).json({ message: "No notes found." });
+      }
+
+      res.status(200).json(notes);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
