@@ -17,11 +17,7 @@ export default class NoteController {
 
       // Create a temporary file for the uploaded PDF
       const timestamp = Date.now();
-      const tempPdfPath = path.join(
-        __dirname,
-        "../uploads",
-        `${timestamp}-temp.pdf`
-      );
+      const tempPdfPath = path.join(__dirname, "../uploads", `${timestamp}-temp.pdf`);
       await fs.writeFile(tempPdfPath, req.file.buffer);
 
       // Convert PDF to images using pdf-to-img
@@ -35,11 +31,7 @@ export default class NoteController {
       // Process each page
       for await (const imageBuffer of document) {
         // Write image to file temporarily
-        const imagePath = path.join(
-          __dirname,
-          "../uploads",
-          `${timestamp}-page-${pageCounter}.png`
-        );
+        const imagePath = path.join(__dirname, "../uploads", `${timestamp}-page-${pageCounter}.png`);
         await fs.writeFile(imagePath, imageBuffer);
 
         // Use Google Vision to extract text from each image
@@ -51,11 +43,7 @@ export default class NoteController {
         allText += pageText;
 
         // Delete the image file after extracting text
-        await fs
-          .unlink(imagePath)
-          .catch((err) =>
-            console.error(`Error deleting image ${pageCounter}:`, err)
-          );
+        await fs.unlink(imagePath).catch((err) => console.error(`Error deleting image ${pageCounter}:`, err));
 
         pageCounter++;
       }
@@ -69,9 +57,7 @@ export default class NoteController {
       await newNote.save();
 
       // Clean up temporary PDF file
-      await fs
-        .unlink(tempPdfPath)
-        .catch((err) => console.error("Error deleting temp PDF:", err));
+      await fs.unlink(tempPdfPath).catch((err) => console.error("Error deleting temp PDF:", err));
 
       res.status(201).json({
         message: "Note saved successfully.",

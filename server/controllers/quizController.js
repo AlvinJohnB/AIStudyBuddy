@@ -8,9 +8,7 @@ dotenv.config();
 // Check if API key exists, otherwise log a helpful error
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
-  console.error(
-    "OPENAI_API_KEY is not defined in environment variables. Check your .env file."
-  );
+  console.error("OPENAI_API_KEY is not defined in environment variables. Check your .env file.");
   process.exit(1);
 }
 
@@ -25,10 +23,7 @@ export default class QuizController {
 
       const existingQuiz = await Quiz.findOne({ note: noteId });
 
-      if (existingQuiz)
-        return res
-          .status(400)
-          .json({ error: "Quiz already exists for this note" });
+      if (existingQuiz) return res.status(400).json({ error: "Quiz already exists for this note" });
 
       if (!note) return res.status(404).json({ error: "Note not found" });
 
