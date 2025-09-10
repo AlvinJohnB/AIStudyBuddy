@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install app dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 # Bundle app source, excluding node_modules and other unnecessary files
 COPY --chown=node:node . .
