@@ -14,13 +14,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Upload, BookOpen, Brain, FileText, LogOut, Target, BrainCog } from "lucide-react";
+import { Upload, BookOpen, FileText, LogOut, Target, BrainCog } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import LoadingContext from "@/contexts/LoadingContext";
 import { useUser } from "@/contexts/UserContext";
+import logo from "@assets/1.png";
 
 export default function Dashboard() {
   const { setIsLoading } = useContext(LoadingContext);
@@ -119,6 +120,7 @@ export default function Dashboard() {
       toast.success("Quiz generated successfully.");
       // setQuizzes((prev) => [...prev, response.data]);
       fetchQuizzes();
+      fetchNotes();
     } catch (error) {
       console.error("Error generating quiz:", error);
       toast.error("Error generating quiz. Please try again.");
@@ -141,6 +143,7 @@ export default function Dashboard() {
       );
       toast.success("Flashcards generated successfully.");
       fetchFlashcards();
+      fetchNotes();
     } catch (error) {
       console.error("Error generating flashcards:", error);
       toast.error("Error generating flashcards. Please try again.");
@@ -210,12 +213,13 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <Brain className="h-6 w-6" />
+              <div className="flex h-20 w-20 items-center justify-center rounded-lg  text-white">
+                {/* <Brain className="h-6 w-6" /> */}
+                <img src={logo} alt="Logo" className="w-full" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">AI Study Buddy</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Smart learning companion</p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Hedwig - AI Study Buddy</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Your Smart learning companion</p>
               </div>
             </div>
             {/* <div className="flex items-center gap-2">

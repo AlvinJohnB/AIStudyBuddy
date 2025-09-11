@@ -23,7 +23,7 @@ const allowedOrigins = [
   "https://ajbregs.com",
   "https://api-aistudybuddy.ajbregs.com",
   "https://aistudybuddy.ajbregs.com",
-  "http://localhost:3000",
+  "http://localhost:5173",
 ];
 
 app.use(

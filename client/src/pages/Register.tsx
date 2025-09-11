@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Brain, Mail, Lock, User, School } from "lucide-react";
+import { Mail, Lock, User, School } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import logo from "@assets/1.png";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -68,10 +69,11 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white mx-auto mb-4">
-            <Brain className="h-8 w-8" />
+          <div className="flex h-40 w-40 items-center justify-center rounded-2xl text-white mx-auto mb-4">
+            {/* <Brain className="h-8 w-8" /> */}
+            <img src={logo} alt="Logo" className="w-full" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Study Buddy</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your AI Study Buddy</h1>
           <p className="text-gray-600 dark:text-gray-400">Start your smart learning journey today</p>
         </div>
         <form onSubmit={submitForm}>
