@@ -30,9 +30,17 @@ export default class NoteController {
           .json({ message: "Upload limit reached for this week. Contact developer for assistance." });
       }
 
+      // Ensure uploads directory exists
+      const uploadsDir = path.join(__dirname, "../uploads");
+      try {
+        await fs.access(uploadsDir);
+      } catch {
+        await fs.mkdir(uploadsDir, { recursive: true });
+      }
+
       // Create a temporary file for the uploaded PDF
       const timestamp = Date.now();
-      const tempPdfPath = path.join(__dirname, "../uploads", `${timestamp}-temp.pdf`);
+      const tempPdfPath = path.join(uploadsDir, `${title}-${timestamp}-temp.pdf`);
       await fs.writeFile(tempPdfPath, req.file.buffer);
 
       // Convert PDF to images using pdf-to-img

@@ -9,7 +9,7 @@ services:
       - "5000:5000"
     environment:
       - NODE_ENV=${NODE_ENV}
-      - MONGODB_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/mydb?authSource=admin
+      - MONGODB_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:27017/my_ai_studybuddy?authSource=admin
       - PORT=${PORT}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
