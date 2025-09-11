@@ -21,8 +21,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://ajbregs.com:3000",
   "https://ajbregs.com",
-  "https://api-aistudybuddy.ajbregs.com",
-  "https://aistudybuddy.ajbregs.com",
+  "https://hedwig.ajbregs.com",
   "http://localhost:5173",
 ];
 
