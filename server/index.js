@@ -1,3 +1,4 @@
+import "./utils/polyfills.js";
 import dotenv from "dotenv";
 // Load environment variables first before other imports
 dotenv.config();
@@ -46,5 +47,5 @@ app.use("/flashcards", flashcardRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}. Version 1.0.10`);
+  console.log(`Server is running on port ${PORT}. Version 1.0.11`);
 });
