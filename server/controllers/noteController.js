@@ -5,6 +5,13 @@ import { promises as fs } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { pdf } from "pdf-to-img";
+import pkg from "dommatrix";
+const { DOMMatrix } = pkg;
+
+// Make DOMMatrix available globally
+if (typeof global.DOMMatrix === "undefined") {
+  global.DOMMatrix = DOMMatrix;
+}
 
 // Get directory name for ES module
 const __filename = fileURLToPath(import.meta.url);
