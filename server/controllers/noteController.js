@@ -4,13 +4,7 @@ import User from "../models/User.js";
 import { promises as fs } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { pdf } from "pdf-to-img";
-import { DOMMatrix } from "canvas"; // Replace the dommatrix package with canvas
-
-// Make DOMMatrix available globally
-if (typeof global.DOMMatrix === "undefined") {
-  global.DOMMatrix = DOMMatrix;
-}
+import { convert } from "pdf-poppler";
 
 // Get directory name for ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -21,8 +15,6 @@ export default class NoteController {
     try {
       const { title } = req.body;
       const userId = req.user.id;
-
-      // console.log(userId);
 
       const user = await User.findOne({ _id: userId });
 
@@ -49,19 +41,42 @@ export default class NoteController {
       const tempPdfPath = path.join(uploadsDir, `${title}-${timestamp}-temp.pdf`);
       await fs.writeFile(tempPdfPath, req.file.buffer);
 
-      // Convert PDF to images using pdf-to-img
-      // Higher scale means better quality but larger file size
-      const document = await pdf(tempPdfPath, { scale: 3 });
+      // Create output directory for converted images
+      const imageOutputDir = path.join(uploadsDir, `${timestamp}-images`);
+      try {
+        await fs.mkdir(imageOutputDir, { recursive: true });
+      } catch (err) {
+        console.error("Error creating output directory:", err);
+      }
+
+      // Convert PDF to images using pdf-poppler
+      const options = {
+        format: "png",
+        out_dir: imageOutputDir,
+        out_prefix: "page",
+        page: null, // Convert all pages
+        scale: 3.0, // Higher scale for better quality
+        dpi: 300, // Higher DPI for better text recognition
+      };
+
+      await convert(tempPdfPath, options);
 
       // Extract text from all pages using Google Vision OCR
       let allText = "";
-      let pageCounter = 1;
+
+      // Get all image files from the output directory
+      const imageFiles = (await fs.readdir(imageOutputDir))
+        .filter((file) => file.endsWith(".png"))
+        .sort((a, b) => {
+          // Extract page numbers for proper sorting
+          const numA = parseInt(a.match(/page-(\d+)/)?.[1] || "0");
+          const numB = parseInt(b.match(/page-(\d+)/)?.[1] || "0");
+          return numA - numB;
+        });
 
       // Process each page
-      for await (const imageBuffer of document) {
-        // Write image to file temporarily
-        const imagePath = path.join(__dirname, "../uploads", `${timestamp}-page-${pageCounter}.png`);
-        await fs.writeFile(imagePath, imageBuffer);
+      for (let i = 0; i < imageFiles.length; i++) {
+        const imagePath = path.join(imageOutputDir, imageFiles[i]);
 
         // Use Google Vision to extract text from each image
         const [visionResult] = await client.documentTextDetection(imagePath);
@@ -72,9 +87,14 @@ export default class NoteController {
         allText += pageText;
 
         // Delete the image file after extracting text
-        await fs.unlink(imagePath).catch((err) => console.error(`Error deleting image ${pageCounter}:`, err));
+        await fs.unlink(imagePath).catch((err) => console.error(`Error deleting image ${i + 1}:`, err));
+      }
 
-        pageCounter++;
+      // Clean up the image output directory
+      try {
+        await fs.rmdir(imageOutputDir);
+      } catch (err) {
+        console.error("Error removing output directory:", err);
       }
 
       user.uploadsUsed += 1;
