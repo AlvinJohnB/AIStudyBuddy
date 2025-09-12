@@ -46,5 +46,5 @@ app.use("/flashcards", flashcardRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}. Version 1.0.9`);
+  console.log(`Server is running on port ${PORT}. Version 1.0.10`);
 });

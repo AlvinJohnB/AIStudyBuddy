@@ -5,8 +5,7 @@ import { promises as fs } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { pdf } from "pdf-to-img";
-import pkg from "dommatrix";
-const { DOMMatrix } = pkg;
+import { DOMMatrix } from "canvas"; // Replace the dommatrix package with canvas
 
 // Make DOMMatrix available globally
 if (typeof global.DOMMatrix === "undefined") {
