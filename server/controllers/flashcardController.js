@@ -54,7 +54,7 @@ export default class FlashCardController {
             content: `
       You are assisting a student in their study session and you are making flashcards for your students on the following notes. If you think that some of the data in the notes is not right, correct it.
       Generate 20 flashcards from the following notes with a variety of difficulties.
-      Each flashcard should have a question and an answer. The correct answer should also be explained thoroughly.
+      Each flashcard should have a question and an answer. If there are mathematical equations in the notes, ask about them for the student to be able to memorize them and give maybe 2 sample problems to check their knowledge. The correct answer should also be explained thoroughly.
       Return the result in this JSON format ONLY:
 
       {

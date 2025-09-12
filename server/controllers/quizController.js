@@ -52,7 +52,7 @@ export default class QuizController {
             role: "user",
             content: `
       You are a subject instructor and you are making a quiz for your students on the following notes. If you think that some of the data in the notes is not right, correct it.
-      Generate 20 multiple-choice questions from the following notes with a variety of difficulties.
+      Generate 20 multiple-choice questions from the following notes with a variety of difficulties. If there are mathematical equations in the notes, give sample problems.
       Each question should have 4 options (A–D) and one correct answer. The correct answer should also be explained thoroughly.
       Return the result in this JSON format ONLY:
 
