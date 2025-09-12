@@ -1,19 +1,19 @@
-FROM node:18-alpine
+FROM node:latest
 WORKDIR /app
 
 # Install build dependencies first
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
     git \
     bash \
-    pkgconfig \
-    pixman-dev \
-    cairo-dev \
-    pango-dev \
-    jpeg-dev \
-    giflib-dev
+    pkg-config \
+    libpixman-1-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev
 
 # Copy package.json first for caching
 COPY package*.json ./
