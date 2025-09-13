@@ -1,21 +1,26 @@
-FROM node:latest
+FROM node:18-alpine
+
 WORKDIR /app
 
-# Install build dependencies first
-RUN apt-get update && apt-get install -y \
+# Install build dependencies for canvas, pdf2pic, gm (GraphicsMagick), and Ghostscript
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     git \
     bash \
-    pkg-config \
-    libpixman-1-dev \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev
+    pixman-dev \
+    cairo-dev \
+    pango-dev \
+    jpeg-dev \
+    giflib-dev \
+    libpng-dev \
+    freetype-dev \
+    poppler-utils \
+    graphicsmagick \
+    ghostscript   
 
-# Copy package.json first for caching
+# Copy package.json and package-lock.json for better caching
 COPY package*.json ./
 
 # Install dependencies

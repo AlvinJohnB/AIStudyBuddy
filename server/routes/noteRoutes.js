@@ -13,8 +13,25 @@ export const upload = multer({
   },
 });
 
+export const imagesUpload = multer({
+  storage: multerStorage,
+  limits: {
+    fileSize: 40 * 1024 * 1024, // 40MB limit
+  },
+});
+
 router.get("/", Auth.verifyToken, NoteController.getNotes);
 
 router.post("/", Auth.verifyToken, Auth.checkAndResetLimits, upload.single("file"), NoteController.saveNote);
+
+router.post(
+  "/images",
+  Auth.verifyToken,
+  Auth.checkAndResetLimits,
+  imagesUpload.array("images", 5), // Limit to 5 images
+  NoteController.saveNoteImages
+);
+
+router.delete("/:id", Auth.verifyToken, NoteController.deleteNote);
 
 export default router;

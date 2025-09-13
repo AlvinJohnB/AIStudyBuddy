@@ -21,6 +21,4 @@ const flashcardSchema = new mongoose.Schema({
   },
 });
 
-const Flashcard = mongoose.model("Flashcard", flashcardSchema);
-
-export default Flashcard;
+export default mongoose.models.Flashcard || mongoose.model("Flashcard", flashcardSchema);

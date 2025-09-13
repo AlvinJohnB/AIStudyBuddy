@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Upload, BookOpen, FileText, LogOut, Target, BrainCog } from "lucide-react";
+import { Upload, BookOpen, FileText, LogOut, Target, BrainCog, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import LoadingContext from "@/contexts/LoadingContext";
 import { useUser } from "@/contexts/UserContext";
 import logo from "@assets/1.png";
+import Swal from "sweetalert2";
 
 export default function Dashboard() {
   const { setIsLoading } = useContext(LoadingContext);
@@ -61,6 +62,8 @@ export default function Dashboard() {
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [openImageUploadDialog, setOpenImageUploadDialog] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   const fetchNotes = async () => {
     try {
@@ -158,9 +161,21 @@ export default function Dashboard() {
     fetchFlashcards();
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      if (type === "pdf") {
+        setFile(e.target.files[0]);
+      } else if (type === "images") {
+        if (e.target.files.length > 5) {
+          setImageFiles([]);
+          toast.error("You can upload a maximum of 5 images at a time.");
+          setOpenImageUploadDialog(false);
+          return;
+        }
+        const files = Array.from(e.target.files);
+        setImageFiles(files);
+        console.log(files);
+      }
     }
   };
 
@@ -203,6 +218,83 @@ export default function Dashboard() {
     } finally {
       setIsLoading(false);
       setOpenUploadDialog(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!imageFiles || imageFiles.length === 0) {
+      toast.error("Please select image files to upload.");
+      return;
+    }
+    if (
+      imageFiles.some((file) => file.type !== "image/jpeg" && file.type !== "image/png" && file.type !== "image/jpg")
+    ) {
+      toast.error("Only JPEG, PNG, and JPG files are allowed.");
+      return;
+    }
+    if (!title) {
+      toast.error("Please enter a title for your notes.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    imageFiles.forEach((image) => {
+      formData.append("images", image);
+    });
+
+    try {
+      setIsLoading(true);
+      await axios.post(`${import.meta.env.VITE_API_URL}/notes/images`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast.success("File uploaded successfully.");
+      setTitle("");
+      setImageFiles([]);
+      fetchNotes();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Error uploading file. Please try again.");
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+      setOpenUploadDialog(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "It will also delete your generated quizzes and flashcards for this note. You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      });
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        await axios.delete(`${import.meta.env.VITE_API_URL}/notes/${noteId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        toast.success("Note deleted successfully.");
+        fetchNotes();
+        fetchQuizzes();
+        fetchFlashcards();
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("Error deleting note. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -317,11 +409,11 @@ export default function Dashboard() {
 
                 <Dialog open={openUploadDialog} onOpenChange={setOpenUploadDialog}>
                   <DialogTrigger asChild>
-                    <Button>Upload Notes</Button>
+                    <Button>Upload PDF Notes</Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                      <DialogTitle>Upload Notes</DialogTitle>
+                      <DialogTitle>Upload PDF Notes</DialogTitle>
                       <DialogDescription>Upload your PDF notes to generate quizzes and flashcards.</DialogDescription>
                     </DialogHeader>
                     <form encType="multipart/form-data" onSubmit={handleUpload}>
@@ -337,7 +429,55 @@ export default function Dashboard() {
                         </div>
                         <div className="grid gap-3">
                           <Label htmlFor="file">File</Label>
-                          <Input id="file" name="file" onChange={handleFileChange} type="file" />
+                          <Input id="file" name="file" onChange={(e) => handleFileChange(e, "pdf")} type="file" />
+                        </div>
+                      </div>
+                      <DialogFooter className="mt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline" type="button">
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">Upload</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+                {/* Upload Note Images */}
+                <Dialog open={openImageUploadDialog} onOpenChange={setOpenImageUploadDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="md:ml-2 mt-2 md:mt-0">
+                      Upload Note Images
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Upload Note Images</DialogTitle>
+                      <DialogDescription>Upload your PDF notes to generate quizzes and flashcards.</DialogDescription>
+                    </DialogHeader>
+                    <form encType="multipart/form-data" onSubmit={handleImageUpload}>
+                      <div className="grid gap-4">
+                        <div className="grid gap-3">
+                          <Label htmlFor="title">Title</Label>
+                          <Input
+                            id="title"
+                            name="title"
+                            placeholder="Enter the title of your notes. (e.g. Biology Chapter 1)"
+                            onChange={(e) => setTitle(e.target.value)}
+                          />
+                        </div>
+                        <div className="grid gap-3">
+                          <Label htmlFor="file">Files</Label>
+                          <Input
+                            id="file"
+                            name="file"
+                            type="file"
+                            multiple
+                            onChange={(e) => handleFileChange(e, "images")}
+                            max={5}
+                            accept="image/*"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">You can select up to 5 images.</p>
                         </div>
                       </div>
                       <DialogFooter className="mt-4">
@@ -365,45 +505,65 @@ export default function Dashboard() {
               <CardDescription>Your recently uploaded study materials.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 overflow-y-auto max-h-75">
-              {notes.map((note, index) => (
-                <div key={index} className="grid grid-cols-1 p-3 rounded-lg border bg-gray-50 dark:bg-gray-800">
-                  <div className="flex items-center mb-1 gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded bg-red-100 dark:bg-red-900">
-                      <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{note.title}</p>
-                      {/* <p className="text-sm text-gray-600 dark:text-gray-400">
+              {notes.length > 0 ? (
+                notes.map((note, index) => (
+                  <div key={index} className="grid grid-cols-1 p-3 rounded-lg border bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center mb-1 gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-red-100 dark:bg-red-900">
+                        <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{note.title}</p>
+                        {/* <p className="text-sm text-gray-600 dark:text-gray-400">
                         {note.pages} pages • {note.date}
                       </p> */}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-1 md:justify-center flex-wrap mt-3 md:mt-0">
+                      <Button
+                        variant={note.quizGenerated ? "outline" : "default"}
+                        className="hover:cursor-pointer transition-colors w-full md:w-50"
+                        disabled={note.quizGenerated}
+                        size="sm"
+                        onClick={() => handleGenerateQuiz(note._id)}
+                        aria-label={note.quizGenerated ? "Quiz already generated" : "Generate quiz"}
+                      >
+                        <Target className="h-4 w-4 mr-2" />
+                        {note.quizGenerated ? "Quiz Generated" : "Generate Quiz"}
+                      </Button>
+                      <Button
+                        variant={note.flashcardGenerated ? "outline" : "default"}
+                        disabled={note.flashcardGenerated}
+                        className="hover:cursor-pointer transition-colors w-full md:w-50"
+                        size="sm"
+                        onClick={() => handleGenerateFlashcards(note._id)}
+                      >
+                        <BrainCog className="h-4 w-4 mr-2" />
+                        {note.flashcardGenerated ? "Flashcards Generated" : "Generate Flashcards"}
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteNote(note._id)}
+                        className="w-full md:w-50 text-foreground hover:cursor-pointer transition-colors hover:text-muted hover:bg-red-700"
+                      >
+                        <Trash2 />
+                        Delete Note
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="flex gap-1 md:justify-center flex-wrap mt-3 md:mt-0">
-                    <Button
-                      variant={note.quizGenerated ? "outline" : "default"}
-                      className="hover:cursor-pointer transition-colors w-full md:w-50"
-                      disabled={note.quizGenerated}
-                      size="sm"
-                      onClick={() => handleGenerateQuiz(note._id)}
-                      aria-label={note.quizGenerated ? "Quiz already generated" : "Generate quiz"}
-                    >
-                      <Target className="h-4 w-4 mr-2" />
-                      {note.quizGenerated ? "Quiz Generated" : "Generate Quiz"}
-                    </Button>
-                    <Button
-                      variant={note.flashcardGenerated ? "outline" : "default"}
-                      disabled={note.flashcardGenerated}
-                      className="hover:cursor-pointer transition-colors w-full md:w-50"
-                      size="sm"
-                      onClick={() => handleGenerateFlashcards(note._id)}
-                    >
-                      <BrainCog className="h-4 w-4 mr-2" />
-                      {note.flashcardGenerated ? "Flashcards Generated" : "Generate Flashcards"}
-                    </Button>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No notes yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Upload PDF files or images of your study materials to get started.
+                  </p>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </div>
@@ -418,26 +578,41 @@ export default function Dashboard() {
             <CardDescription>AI-generated quizzes from your study materials.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quizzes.map((quiz) => (
-                <Card key={quiz._id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{quiz.title}</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">From: {quiz.title}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      <span>{quiz.questions.length} questions</span>
-                    </div>
-                    <Link to={`/quiz/${quiz._id}`}>
-                      <Button className="w-full" size="sm">
-                        Start Quiz
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {quizzes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {quizzes.map((quiz) => (
+                  <Card key={quiz._id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{quiz.title}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">From: {quiz.title}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        <span>{quiz.questions.length} questions</span>
+                      </div>
+                      <Link to={`/quiz/${quiz._id}`}>
+                        <Button className="w-full" size="sm">
+                          Start Quiz
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Target className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No quizzes yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Upload a document and generate a quiz to test your knowledge.
+                </p>
+                {notes.length > 0 && (
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    You have notes available. Click "Generate Quiz" on a note to create your first quiz.
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -451,26 +626,41 @@ export default function Dashboard() {
             <CardDescription>AI-generated flashcards from your study materials.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {flashcards.map((flashcard) => (
-                <Card key={flashcard._id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{flashcard.title}</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">From: {flashcard.title}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      <span>{flashcard.questions.length} questions</span>
-                    </div>
-                    <Link to={`/flashcard/${flashcard._id}`}>
-                      <Button className="w-full" size="sm">
-                        Start Studying
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {flashcards.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {flashcards.map((flashcard) => (
+                  <Card key={flashcard._id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{flashcard.title}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">From: {flashcard.title}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        <span>{flashcard.questions.length} questions</span>
+                      </div>
+                      <Link to={`/flashcard/${flashcard._id}`}>
+                        <Button className="w-full" size="sm">
+                          Start Studying
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BrainCog className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No flashcards yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Upload a document and generate flashcards to help you study more effectively.
+                </p>
+                {notes.length > 0 && (
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    You have notes available. Click "Generate Flashcards" on a note to create your first set.
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
