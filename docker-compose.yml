@@ -24,6 +24,9 @@ services:
       - GOOGLE_CLIENT_X509_CERT_URL=${GOOGLE_CLIENT_X509_CERT_URL}
     depends_on:
       - mongo
+    networks:
+      - default
+      - nginx_proxy_net  # Adding nginx proxy network
 
   client:
     build:
@@ -38,6 +41,9 @@ services:
       - NODE_ENV=${NODE_ENV}
     depends_on:
       - server
+    networks:
+      - default
+      - nginx_proxy_net  # Adding nginx proxy network
 
   mongo:
     image: mongo:6
@@ -50,6 +56,13 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
     volumes:
       - mongo-data:/data/db
+    networks:
+      - default
 
 volumes:
   mongo-data:
+
+networks:
+  default:
+  nginx_proxy_net:
+    external: true  # This tells Docker this is an existing network
