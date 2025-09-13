@@ -1,7 +1,7 @@
 import client from "../config/visionClient.js";
 import Note from "../models/Note.js";
 import User from "../models/User.js";
-import FlashCard from "../models/FlashCard.js";
+import FlashCard from "../models/Flashcard.js";
 import Quiz from "../models/Quiz.js";
 import { promises as fs } from "node:fs";
 import path from "path";
